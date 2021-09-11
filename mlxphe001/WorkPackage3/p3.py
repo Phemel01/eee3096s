@@ -12,8 +12,12 @@ LED_value = [11, 13, 15]
 LED_accuracy = 32
 btn_submit = 16
 btn_increase = 18
+DC1 = 0
+DC2 =0
 buzzer = None
 eeprom = ES2EEPROMUtils.ES2EEPROM()
+user_guess = 0
+rnum=0;# set it up in the main function
 
 
 # Print the game banner
@@ -64,13 +68,32 @@ def display_scores(count, raw_data):
 # Setup Pins
 def setup():
     # Setup board mode
+    GPIO.setmode(GPIO.BOARD)
     # Setup regular GPIO
+    GPIO.setup(16, GPIO.IN)
+    GPIO.setup(18, GPIO.IN)
+    GPIO.setup(11, GPIO.OUT)
+    GPIO.setup(13, GPIO.OUT)
+    GPIO.setup(15, GPIO.OUT)
     # Setup PWM channels
+   
+    
+    global myled = GPIO.PWM(32,100)
+    global myBuz = GPIO.PWM(33,100)
+    myled.start(0)
+    mybuz.start(0)
     # Setup debouncing and callbacks
+    GPIO.add_event_detect(16, GPIO.FALLING, callback=my_callback1, bouncetime=200)
+    GPIO.add_event_detect(18, GPIO.FALLING, callback=my_callback2, bouncetime=200)
     pass
 
 
 # Load high scores
+def my_callback1(16):
+    user_guess+=1
+    
+def my_callback2(18):
+
 def fetch_scores():
     # get however many scores there are
     score_count = None
@@ -102,13 +125,57 @@ def btn_increase_pressed(channel):
     # Increase the value shown on the LEDs
     # You can choose to have a global variable store the user's current guess, 
     # or just pull the value off the LEDs when a user makes a guess
+    if GPIO.output(15)==LOW:
+        if GPIO.output(13)==LOW:
+            if GPIO.output(11)==LOW:
+                GPIO.output(11, GPIO.HIGH)
+            else: 
+                GPIO.output(11, GPIO.LOW)
+                GPIO.output(13, GPIO.HIGH)
+        else:
+            if GPIO.output(11)==LOW:
+                GPIO.output(11, GPIO.HIGH)
+            else: 
+                GPIO.output(11, GPIO.LOW)
+                GPIO.output(13, GPIO.LOW)
+                GPIO.output(15, GPIO.HIGH)
+    else:
+        if GPIO.output(13)==LOW:
+            if GPIO.output(11)==LOW:
+                GPIO.output(11, GPIO.HIGH)
+            else: 
+                GPIO.output(11, GPIO.LOW)
+                GPIO.output(13, GPIO.HIGH)
+        else:
+            if GPIO.output(11)==LOW:
+                GPIO.output(11, GPIO.HIGH)
+            else: 
+                GPIO.output(11, GPIO.LOW)
+                GPIO.output(13, GPIO.LOW)
+                GPIO.output(15, GPIO.HIGH)
+                     
     pass
 
 
 # Guess button
 def btn_guess_pressed(channel):
     # If they've pressed and held the button, clear up the GPIO and take them back to the menu screen
-    # Compare the actual value with the user value displayed on the LEDs
+    
+    #converts led count to number  
+    user_guess=0;
+    if GPIO.output(11)==HIGH:
+        user_guess+=1
+    if GPIO.output(13)==HIGH:
+        user_guess+=2
+    if GPIO.output(15)==HIGH:
+        user_guess+=4
+    # Compare the actual value with the user value displayed on the LEDs   
+    if user_guess==rnum:
+    
+    else:
+        accuracy_leds()
+        trigger_buzzer()
+    
     # Change the PWM LED
     # if it's close enough, adjust the buzzer
     # if it's an exact guess:
@@ -127,6 +194,14 @@ def accuracy_leds():
     # - The % brightness should be directly proportional to the % "closeness"
     # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
     # - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
+    
+    if user_guess>rnum:
+        brightness=100*(8-user_guess)/(8-rnum)
+    else:
+        brightness= 100*(user_guess/rnum)
+      
+    myled.changeDutyCycle(brightness)
+    
     pass
 
 # Sound Buzzer
@@ -134,9 +209,17 @@ def trigger_buzzer():
     # The buzzer operates differently from the LED
     # While we want the brightness of the LED to change(duty cycle), we want the frequency of the buzzer to change
     # The buzzer duty cycle should be left at 50%
+    mybuz.changeDutyCycle(50)
     # If the user is off by an absolute value of 3, the buzzer should sound once every second
+    if abs(rnum-user_guess)>=3:
+        mybuz.changeFrequency(1)
+    
     # If the user is off by an absolute value of 2, the buzzer should sound twice every second
+    if abs(rnum-user_guess)==2:
+        mybuz.changeFrequency(2)
     # If the user is off by an absolute value of 1, the buzzer should sound 4 times a second
+    if abs(rnum-user_guess)==1:
+        mybuz.changeFrequency(4)
     pass
 
 
