@@ -57,10 +57,10 @@ def menu():
         print("Starting a new round!")
         print("Use the buttons on the Pi to make and submit your guess!")
         print("Press and hold the guess button to cancel your game")
-        print(GPIO.input(15))
+        #print(GPIO.input(15))
         user_guess=0
         rnum = generate_number()
-        print(rnum)
+       # print(rnum)
         value= rnum
         while not end_of_game:
             pass
@@ -79,7 +79,7 @@ def display_scores(count, raw_data):
               
               print("%d-%s took %d guesses"%(i+1,x[0],x[1]))
     # print out the scores in the required format
-
+    menu()
 
 
 # Setup Pins
@@ -97,7 +97,7 @@ def setup():
     GPIO.output(11, GPIO.LOW)
     GPIO.output(13, GPIO.LOW)
     GPIO.output(15, GPIO.LOW)
-    print("2.2")
+    
     # Setup PWM channels
    
     GPIO.setup(32, GPIO.OUT)
@@ -106,14 +106,11 @@ def setup():
     global myBuz 
     myled = GPIO.PWM(32,100)
     myBuz = GPIO.PWM(33,100)
-    print("2")
     myled.start(0)
     myBuz.start(0)
-    print("5")
     # Setup debouncing and callbacks
     GPIO.add_event_detect(16, GPIO.FALLING, callback=my_callback1, bouncetime=200)
     GPIO.add_event_detect(18, GPIO.FALLING, callback=my_callback2, bouncetime=200)
-    print("7")
 
 
 # Load high scores
@@ -124,7 +121,7 @@ def my_callback1(channel):
           pass
     stt=time.time()-tm
     if stt>=0.1:
-          print("pressed ch1") 
+          #print("pressed ch1") 
           btn_increase_pressed()
 def my_callback2(channel):
     global bs
@@ -137,7 +134,7 @@ def my_callback2(channel):
     if bt<=0.1:
          bs=1
     elif bt<=1:
-         print("pressed ch2")
+         #print("pressed ch2")
          btn_guess_pressed()
     else:
          bs=3
@@ -151,9 +148,9 @@ def fetch_scores():
     # get however many scores there are
     score_count = 0
     ndata=eeprom.read_block(0,4)
-    print(ndata[0])
+    #print(ndata[0])
     rd= eeprom.read_block(0,ndata[0]*4+4)
-    print(rd)
+    #print(rd)
     scores=[]
     i=0
     while True:
@@ -174,7 +171,7 @@ def fetch_scores():
     # Get the scores
     score_count = ndata[0]
     # convert the codes back to ascii
-    print(scores)
+    #print(scores)
     # return back the results
     return score_count, scores
 
@@ -206,18 +203,18 @@ def save_scores():
              else:
                 tb+=1
                 ws=ws+char
-    print("here")
-    print([ws]+[user_guess])
+    #print("here")
+    #print([ws]+[user_guess])
     ss.append([ws]+[user_guess])
     ss.sort(key=lambda x: x[1])
-    print(ss)
-    print("sorted list")
+    #print(ss)
+    #print("sorted list")
     for i, sc in enumerate(ss):
               dwrite=[]
-              print(sc[0])
-              print(i)
-              print(sc)
-              print("list data")
+              #print(sc[0])
+              #print(i)
+              # print(sc)
+              # print("list data")
               if isinstance(sc[0], int):
                  continue
               for char in sc[0]:
@@ -322,12 +319,12 @@ def accuracy_leds():
     # - The % brightness should be directly proportional to the % "closeness"
     # - For example if the answer is 6 and a user guesses 4, the brightness should be at 4/6*100 = 66%
     # - If they guessed 7, the brightness would be at ((8-7)/(8-6)*100 = 50%
-    print("userg= %d rnum= %d"%(n_guess,rnum))
+    #print("userg= %d rnum= %d"%(n_guess,rnum))
     if n_guess>rnum:
-        print("changeledb")
+        #print("changeledb")
         brightness=100*(8-n_guess)/(8-rnum)
     else:
-        print("changeledb")
+        #print("changeledb")
         brightness= 100*(n_guess/rnum)
       
     myled.ChangeDutyCycle(brightness)
@@ -342,16 +339,16 @@ def trigger_buzzer():
     myBuz.ChangeDutyCycle(50)
     # If the user is off by an absolute value of 3, the buzzer should sound once every second
     if abs(rnum-n_guess)>=3:
-        print("chang1buz =%d"%(n_guess))
+        
         myBuz.ChangeFrequency(1)
     
     # If the user is off by an absolute value of 2, the buzzer should sound twice every second
     if abs(rnum-n_guess)==2:
-        print("chang2buz =%d"%(n_guess))
+        #print("chang2buz =%d"%(n_guess))
         myBuz.ChangeFrequency(2)
     # If the user is off by an absolute value of 1, the buzzer should sound 4 times a second
     if abs(rnum-n_guess)==1:
-        print("chang3buz =%d"%(n_guess))
+        #print("chang3buz =%d"%(n_guess))
         myBuz.ChangeFrequency(40)
     
 
@@ -359,9 +356,9 @@ def trigger_buzzer():
 if __name__ == "__main__":
     try:
         # Call setup function
-        print("here")
+        
         setup()
-        print("1")
+        
         welcome()
         while True:
             menu()
