@@ -3,7 +3,7 @@
 module reg_mem (addr, data_in, wen, clk, data_out);
 
     parameter DATA_WIDTH = 8; //4 bit wide data
-    parameter ADDR_BITS = 6; //8 Addresses
+    parameter ADDR_BITS = 5; //8 Addresses
 
     input [ADDR_BITS-1:0] addr;
     input [DATA_WIDTH-1:0] data_in;
